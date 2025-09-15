@@ -1,0 +1,141 @@
+/* Think Inside the Box - Base Styles */
+/* Main container for thinking blocks */
+
+.think-inside-box-container {
+  /* Scrolling container setup */
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* Visual styling */
+  background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  margin: 16px 0;
+  padding: 16px;
+
+  /* Typography */
+  font-family: 'Consolas', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #495057;
+
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #adb5bd #f8f9fa;
+
+  /* Box styling */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Ensure text selection works */
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+.think-inside-box-container:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border-color: #adb5bd;
+}
+
+/* Custom scrollbar for WebKit browsers */
+.think-inside-box-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.think-inside-box-container::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.think-inside-box-container::-webkit-scrollbar-thumb {
+  background: #adb5bd;
+  border-radius: 4px;
+}
+
+.think-inside-box-container::-webkit-scrollbar-thumb:hover {
+  background: #6c757d;
+}
+
+/* Content wrapper inside the container */
+.think-inside-box-content {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: inherit;
+}
+
+/* Styling for the <think> and </think> markers */
+.think-inside-box-marker {
+  display: inline-block;
+  padding: 2px 6px;
+  background: #e9ecef;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #6c757d;
+  font-size: 11px;
+  margin: 0 4px;
+  font-family: inherit;
+  border: 1px solid #d6d8db;
+}
+
+/* Dark theme support for JanitorAI (if dark theme detected) */
+@media (prefers-color-scheme: dark) {
+  .think-inside-box-container {
+    background: linear-gradient(145deg, #2d3748, #1a202c);
+    border-color: #4a5568;
+    color: #e2e8f0;
+    scrollbar-color: #4a5568 #2d3748;
+  }
+
+  .think-inside-box-container::-webkit-scrollbar-track {
+    background: #2d3748;
+  }
+
+  .think-inside-box-container::-webkit-scrollbar-thumb {
+    background: #4a5568;
+  }
+
+  .think-inside-box-container::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+  }
+
+  .think-inside-box-marker {
+    background: #4a5568;
+    color: #cbd5e0;
+    border-color: #5a6578;
+  }
+}
+
+/* Ensure containers work well within JanitorAI's layout */
+.think-inside-box-container * {
+  box-sizing: border-box;
+}
+
+/* Animation for new containers */
+@keyframes thinkBoxFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.think-inside-box-container {
+  animation: thinkBoxFadeIn 0.3s ease-out;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .think-inside-box-container {
+    margin: 12px 0;
+    padding: 12px;
+    font-size: 12px;
+    max-height: 250px;
+  }
+}

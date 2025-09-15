@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Think Inside the Box - Settings</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-container">
+        <header class="popup-header">
+            <h1>Think Inside the Box</h1>
+            <p>Configure thinking block styling</p>
+        </header>
+
+        <div class="settings-section">
+            <div class="setting-item">
+                <label class="setting-label">
+                    <input type="checkbox" id="enabled" class="setting-checkbox">
+                    <span class="checkmark"></span>
+                    Enable Extension
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <label for="theme" class="setting-label">Theme:</label>
+                <select id="theme" class="setting-select">
+                    <option value="default">Default</option>
+                    <option value="dark">Dark</option>
+                    <option value="minimal">Minimal</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <label for="maxHeight" class="setting-label">Max Height:</label>
+                <div class="range-container">
+                    <input type="range" id="maxHeight" min="100" max="800" step="25" class="setting-range">
+                    <span id="maxHeightValue" class="range-value">300px</span>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <label for="fontSize" class="setting-label">Font Size:</label>
+                <div class="range-container">
+                    <input type="range" id="fontSize" min="10" max="20" step="1" class="setting-range">
+                    <span id="fontSizeValue" class="range-value">13px</span>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <label for="fontFamily" class="setting-label">Font Family:</label>
+                <select id="fontFamily" class="setting-select">
+                    <option value="Consolas, monospace">Consolas</option>
+                    <option value="'Fira Code', monospace">Fira Code</option>
+                    <option value="'Source Code Pro', monospace">Source Code Pro</option>
+                    <option value="Monaco, monospace">Monaco</option>
+                    <option value="'Courier New', monospace">Courier New</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                </select>
+            </div>
+
+            <!-- Custom Theme Settings (shown when custom theme is selected) -->
+            <div id="customThemeSettings" class="custom-theme-section" style="display: none;">
+                <h3>Custom Theme</h3>
+
+                <div class="setting-item">
+                    <label for="backgroundColor" class="setting-label">Background Color:</label>
+                    <input type="color" id="backgroundColor" class="setting-color" value="#f8f9fa">
+                </div>
+
+                <div class="setting-item">
+                    <label for="borderColor" class="setting-label">Border Color:</label>
+                    <input type="color" id="borderColor" class="setting-color" value="#dee2e6">
+                </div>
+
+                <div class="setting-item">
+                    <label for="textColor" class="setting-label">Text Color:</label>
+                    <input type="color" id="textColor" class="setting-color" value="#495057">
+                </div>
+
+                <div class="setting-item">
+                    <label for="markerColor" class="setting-label">Marker Color:</label>
+                    <input type="color" id="markerColor" class="setting-color" value="#6c757d">
+                </div>
+            </div>
+        </div>
+
+        <div class="preview-section">
+            <h3>Preview</h3>
+            <div id="preview" class="preview-container">
+                <div class="think-inside-box-marker">&lt;think&gt;</div>
+                <div class="preview-content">This is how your thinking blocks will look with the current settings.</div>
+                <div class="think-inside-box-marker">&lt;/think&gt;</div>
+            </div>
+        </div>
+
+        <div class="button-section">
+            <button id="saveSettings" class="btn btn-primary">Save Settings</button>
+            <button id="resetSettings" class="btn btn-secondary">Reset to Defaults</button>
+        </div>
+
+        <div class="status-section">
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

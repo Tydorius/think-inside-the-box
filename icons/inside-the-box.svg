@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1400" viewBox="0 0 1400 1400">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #79bbf8;
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        font-size: 300px;
+        fill: #fff;
+        font-family: "Tw Cen MT Condensed";
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M211.012,66.012H1188.99a145,145,0,0,1,145,145V1188.99a145,145,0,0,1-145,145H211.012a145,145,0,0,1-145-145V211.012A145,145,0,0,1,211.012,66.012Z"/>
+  <text id="_think_diag" data-name="&lt;think&gt; diag" class="cls-2" transform="translate(94.009 338.605) rotate(45) scale(1.602 2.024)">&lt;think&gt;</text>
+</svg>
