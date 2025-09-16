@@ -39,8 +39,14 @@
       // Initialize styler with settings
       await styler.initialize();
 
+      // Initialize detector with settings
+      detector.initialize(styler.settings);
+
       // Create monitor with detector and styler
       monitor = new ThinkBlockMonitor(detector, styler);
+
+      // Initialize monitor with settings
+      monitor.initialize(styler.settings);
 
       // Start monitoring
       monitor.startMonitoring();
@@ -112,10 +118,21 @@
   // Listen for storage changes (settings updates)
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'sync' && styler) {
-        console.log('Settings changed, updating styler');
+      if (area === 'sync' && styler && detector && monitor) {
+        console.log('Settings changed, updating all components');
         styler.initialize().then(() => {
+          // Update detector and monitor with new settings
+          detector.initialize(styler.settings);
+          monitor.initialize(styler.settings);
+
+          // Update existing containers
           styler.updateExistingContainers();
+
+          // Restart periodic check with new interval if it changed
+          if (changes.periodicCheckInterval) {
+            monitor.stopMonitoring();
+            monitor.startMonitoring();
+          }
         });
       }
     });

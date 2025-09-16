@@ -15,7 +15,11 @@ class ThinkBlockStyler {
       backgroundColor: '#313338',
       borderColor: '#5b21b6',
       textColor: '#c6a3ff',
-      markerColor: '#8e67ff'
+      markerColor: '#8e67ff',
+      // Debug and performance settings
+      debugMode: false,
+      periodicCheckInterval: 3000,
+      scrollPositionMemory: true
     };
   }
 

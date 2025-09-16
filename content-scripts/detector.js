@@ -6,7 +6,18 @@ class ThinkBlockDetector {
     this.startMarker = '&lt;think&gt;';
     this.endMarker = '&lt;/think&gt;';
     this.processedBlocks = new Set();
-    this.debugMode = false; // Debug logging disabled for production
+    this.debugMode = false; // Will be set from settings
+    this.settings = null; // Will be initialized with settings
+  }
+
+  /**
+   * Initialize the detector with settings
+   * @param {Object} settings - Settings object from styler
+   */
+  initialize(settings) {
+    this.settings = settings;
+    this.debugMode = settings.debugMode || false;
+    console.log('Detector initialized with debug mode:', this.debugMode);
   }
 
   /**

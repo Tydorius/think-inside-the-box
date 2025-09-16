@@ -13,7 +13,11 @@ class SettingsManager {
             backgroundColor: '#313338',
             borderColor: '#5b21b6',
             textColor: '#c6a3ff',
-            markerColor: '#8e67ff'
+            markerColor: '#8e67ff',
+            // Debug and performance settings
+            debugMode: false,
+            periodicCheckInterval: 3000,
+            scrollPositionMemory: true
         };
 
         this.currentSettings = { ...this.defaultSettings };
@@ -46,6 +50,12 @@ class SettingsManager {
         this.elements.borderColor = document.getElementById('borderColor');
         this.elements.textColor = document.getElementById('textColor');
         this.elements.markerColor = document.getElementById('markerColor');
+
+        // Advanced settings
+        this.elements.debugMode = document.getElementById('debugMode');
+        this.elements.periodicCheckInterval = document.getElementById('periodicCheckInterval');
+        this.elements.periodicCheckIntervalValue = document.getElementById('periodicCheckIntervalValue');
+        this.elements.scrollPositionMemory = document.getElementById('scrollPositionMemory');
 
         // Buttons and status
         this.elements.saveSettings = document.getElementById('saveSettings');
@@ -81,6 +91,14 @@ class SettingsManager {
         this.elements.textColor.addEventListener('input', () => this.updatePreview());
         this.elements.markerColor.addEventListener('input', () => this.updatePreview());
 
+        // Advanced settings changes
+        this.elements.debugMode.addEventListener('change', () => this.updatePreview());
+        this.elements.periodicCheckInterval.addEventListener('input', () => {
+            this.elements.periodicCheckIntervalValue.textContent = this.elements.periodicCheckInterval.value + 'ms';
+            this.updatePreview();
+        });
+        this.elements.scrollPositionMemory.addEventListener('change', () => this.updatePreview());
+
         // Button clicks
         this.elements.saveSettings.addEventListener('click', () => this.saveSettings());
         this.elements.resetSettings.addEventListener('click', () => this.resetSettings());
@@ -114,6 +132,12 @@ class SettingsManager {
         this.elements.borderColor.value = this.currentSettings.borderColor;
         this.elements.textColor.value = this.currentSettings.textColor;
         this.elements.markerColor.value = this.currentSettings.markerColor;
+
+        // Update advanced settings
+        this.elements.debugMode.checked = this.currentSettings.debugMode;
+        this.elements.periodicCheckInterval.value = this.currentSettings.periodicCheckInterval;
+        this.elements.periodicCheckIntervalValue.textContent = this.currentSettings.periodicCheckInterval + 'ms';
+        this.elements.scrollPositionMemory.checked = this.currentSettings.scrollPositionMemory;
 
         // Show/hide custom theme section
         this.toggleCustomTheme();
@@ -213,7 +237,11 @@ class SettingsManager {
                 backgroundColor: this.elements.backgroundColor.value,
                 borderColor: this.elements.borderColor.value,
                 textColor: this.elements.textColor.value,
-                markerColor: this.elements.markerColor.value
+                markerColor: this.elements.markerColor.value,
+                // Advanced settings
+                debugMode: this.elements.debugMode.checked,
+                periodicCheckInterval: parseInt(this.elements.periodicCheckInterval.value),
+                scrollPositionMemory: this.elements.scrollPositionMemory.checked
             };
 
             if (chrome.storage && chrome.storage.sync) {

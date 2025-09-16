@@ -87,6 +87,37 @@
             </div>
         </div>
 
+        <div class="advanced-section">
+            <h3>Advanced Settings</h3>
+
+            <div class="setting-item">
+                <label class="setting-label">
+                    <input type="checkbox" id="debugMode" class="setting-checkbox">
+                    <span class="checkmark"></span>
+                    Enable Debug Mode
+                </label>
+                <small class="setting-description">Shows detailed console logging for troubleshooting</small>
+            </div>
+
+            <div class="setting-item">
+                <label for="periodicCheckInterval" class="setting-label">Check Interval (ms):</label>
+                <div class="range-container">
+                    <input type="range" id="periodicCheckInterval" class="setting-range" min="1000" max="10000" step="500" value="3000">
+                    <span id="periodicCheckIntervalValue" class="range-value">3000ms</span>
+                </div>
+                <small class="setting-description">How often to check for new thinking blocks (1-10 seconds)</small>
+            </div>
+
+            <div class="setting-item">
+                <label class="setting-label">
+                    <input type="checkbox" id="scrollPositionMemory" class="setting-checkbox">
+                    <span class="checkmark"></span>
+                    Remember Scroll Position
+                </label>
+                <small class="setting-description">Preserves your reading position when processing blocks</small>
+            </div>
+        </div>
+
         <div class="preview-section">
             <h3>Preview</h3>
             <div id="preview" class="preview-container">

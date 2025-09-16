@@ -13,6 +13,21 @@ class ThinkBlockMonitor {
     this.scrollContainer = null;
     this.intersectionObserver = null;
     this.scrollAnchor = null;
+    this.periodicCheckInterval = null;
+    this.lastContentSnapshot = '';
+    this.settings = null; // Will be initialized with settings
+    this.isStreaming = false;
+    this.streamingEndTimeout = null;
+    this.lastButtonState = null;
+  }
+
+  /**
+   * Initialize the monitor with settings
+   * @param {Object} settings - Settings object from styler
+   */
+  initialize(settings) {
+    this.settings = settings;
+    console.log('Monitor initialized with settings');
   }
 
   /**
@@ -36,6 +51,12 @@ class ThinkBlockMonitor {
 
     // Set up intersection observer for viewport detection
     this.setupIntersectionObserver();
+
+    // Set up periodic check for streaming content
+    this.setupPeriodicCheck();
+
+    // Set up streaming detection via send button monitoring
+    this.setupStreamingDetection();
 
     // Process existing content
     this.processCurrentContent();
@@ -126,25 +147,219 @@ class ThinkBlockMonitor {
       const currentPosition = this.getScrollPosition();
       const scrollDelta = Math.abs(currentPosition - this.lastScrollPosition);
 
-      // Only process if user scrolled a significant amount (50px threshold)
-      if (scrollDelta > 50) {
-        console.log(`Significant scroll detected (${scrollDelta}px), re-scanning for new think blocks`);
+      // Only process if user scrolled a significant amount (200px threshold) and not streaming
+      if (scrollDelta > 200 && !this.isStreaming) {
+        console.log(`Significant scroll detected (${scrollDelta}px), checking for new think blocks`);
 
-        // Clear processed blocks on significant scroll to allow re-processing of newly visible content
-        this.detector.clearProcessedBlocks();
+        // Check if there are actually unstyled think blocks before clearing processed blocks
+        if (this.hasUnstyledThinkBlocks()) {
+          console.log('Found unstyled think blocks after scroll, re-processing');
+          // Only clear processed blocks if we have genuinely new content
+          this.detector.clearProcessedBlocks();
 
-        // Temporarily disable scroll events during processing to prevent feedback loops
-        this.isProcessing = true;
+          // Temporarily disable scroll events during processing to prevent feedback loops
+          this.isProcessing = true;
 
-        this.processCurrentContent();
+          this.processCurrentContent();
 
-        // Update last position AFTER processing to get the corrected position
-        setTimeout(() => {
-          this.lastScrollPosition = this.getScrollPosition();
-          this.isProcessing = false;
-        }, 100);
+          // Update last position AFTER processing to get the corrected position
+          setTimeout(() => {
+            this.lastScrollPosition = this.getScrollPosition();
+            this.isProcessing = false;
+          }, 100);
+        } else {
+          console.log('No new think blocks found after scroll, skipping processing');
+          this.lastScrollPosition = currentPosition;
+        }
       }
     }, 150); // 150ms debounce - faster than mutation observer for responsive scroll
+  }
+
+  /**
+   * Sets up periodic check for streaming content that may be missed by MutationObserver
+   */
+  setupPeriodicCheck() {
+    if (!this.settings) {
+      console.warn('Settings not available for periodic check setup');
+      return;
+    }
+
+    const interval = this.settings.periodicCheckInterval || 3000;
+
+    // Check at user-defined interval for streaming content changes
+    this.periodicCheckInterval = setInterval(() => {
+      this.checkForStreamingUpdates();
+    }, interval);
+
+    console.log(`Periodic streaming check enabled (every ${interval}ms)`);
+  }
+
+  /**
+   * Checks for streaming content updates by comparing content snapshots
+   */
+  checkForStreamingUpdates() {
+    if (this.isProcessing || this.isStreaming) {
+      return;
+    }
+
+    // Get current content snapshot
+    const virtuosoContainer = document.querySelector('[data-testid="virtuoso-item-list"]');
+    if (!virtuosoContainer) {
+      return;
+    }
+
+    const currentSnapshot = virtuosoContainer.textContent || '';
+
+    // Check if content has changed since last snapshot
+    if (currentSnapshot !== this.lastContentSnapshot) {
+      // Only check if the new content contains think markers AND isn't already styled
+      const hasThinkMarkers = currentSnapshot.includes('&lt;think&gt;') || currentSnapshot.includes('&lt;/think&gt;');
+      const hasExistingContainers = document.querySelectorAll('.think-inside-box-container').length > 0;
+
+      if (hasThinkMarkers) {
+        // Check if we have unstyled think blocks (content with markers but no containers)
+        const unstyledThinkContent = this.hasUnstyledThinkBlocks();
+
+        if (unstyledThinkContent) {
+          console.log('Periodic check detected new unstyled think blocks');
+          // Only clear processed blocks if we detect genuinely new content
+          this.detector.clearProcessedBlocks();
+          this.processCurrentContent();
+        } else {
+          console.log('Periodic check: think markers found but all appear styled');
+        }
+      }
+
+      this.lastContentSnapshot = currentSnapshot;
+    }
+  }
+
+  /**
+   * Checks if there are think blocks that aren't already styled
+   * @returns {boolean} True if unstyled think blocks exist
+   */
+  hasUnstyledThinkBlocks() {
+    const virtuosoContainer = document.querySelector('[data-testid="virtuoso-item-list"]');
+    if (!virtuosoContainer) return false;
+
+    // Look for think markers that aren't inside our styled containers
+    const allDivs = virtuosoContainer.querySelectorAll('div');
+
+    for (const div of allDivs) {
+      const text = div.textContent || '';
+      const hasStartMarker = text.includes('&lt;think&gt;') || text.includes('<think>');
+      const hasEndMarker = text.includes('&lt;/think&gt;') || text.includes('</think>');
+
+      if ((hasStartMarker || hasEndMarker) && !div.closest('.think-inside-box-container')) {
+        // Found unprocessed think marker
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Sets up streaming detection by monitoring send button state
+   */
+  setupStreamingDetection() {
+    // Monitor button state every 200ms for responsive detection
+    setInterval(() => {
+      this.checkStreamingState();
+    }, 200);
+
+    console.log('Streaming detection via send button monitoring enabled');
+  }
+
+  /**
+   * Checks the current streaming state by examining the send button
+   */
+  checkStreamingState() {
+    const currentButtonState = this.detectButtonState();
+
+    if (currentButtonState !== this.lastButtonState) {
+      this.handleButtonStateChange(this.lastButtonState, currentButtonState);
+      this.lastButtonState = currentButtonState;
+    }
+  }
+
+  /**
+   * Detects the current state of the send button
+   * @returns {string} Button state: 'disabled', 'enabled', 'streaming', or 'unknown'
+   */
+  detectButtonState() {
+    // First check for streaming state (cancel/stop button)
+    const streamingButton = document.querySelector('button[aria-label="Cancel"]') ||
+                           document.querySelector('button[class*="_stopButton_"]') ||
+                           document.querySelector('button[aria-label="Stop"]') ||
+                           document.querySelector('button[aria-label="Stop generation"]');
+
+    if (streamingButton) {
+      return 'streaming';
+    }
+
+    // Look for the send button
+    const sendButton = document.querySelector('button[aria-label="Send"]');
+
+    if (!sendButton) {
+      return 'unknown';
+    }
+
+    // Check if send button is disabled (no text to send)
+    if (sendButton.hasAttribute('disabled')) {
+      return 'disabled';
+    }
+
+    // Send button is enabled (text ready to send)
+    return 'enabled';
+  }
+
+  /**
+   * Handles changes in button state to detect streaming start/end
+   * @param {string} oldState - Previous button state
+   * @param {string} newState - Current button state
+   */
+  handleButtonStateChange(oldState, newState) {
+    if (this.settings?.debugMode) {
+      console.log(`Button state changed: ${oldState} → ${newState}`);
+    }
+
+    // Detect streaming start: send button disappears, replaced by cancel/stop button
+    if ((oldState === 'enabled' || oldState === 'disabled') && newState === 'streaming') {
+      this.isStreaming = true;
+      console.log('Streaming detected: STARTED (cancel button appeared)');
+
+      // Clear any pending processing
+      clearTimeout(this.streamingEndTimeout);
+    }
+
+    // Detect streaming end: cancel/stop button disappears, send button reappears
+    if (oldState === 'streaming' && (newState === 'enabled' || newState === 'disabled')) {
+      this.isStreaming = false;
+      console.log('Streaming detected: ENDED (cancel button disappeared)');
+
+      // Wait for DOM replacement to complete before processing
+      this.schedulePostStreamingProcessing();
+    }
+  }
+
+  /**
+   * Schedules think block processing after streaming ends and DOM stabilizes
+   */
+  schedulePostStreamingProcessing() {
+    // Clear any existing timeout
+    clearTimeout(this.streamingEndTimeout);
+
+    // Wait 1 second after streaming ends to ensure DOM replacement is complete
+    this.streamingEndTimeout = setTimeout(() => {
+      console.log('Processing think blocks after streaming completion');
+
+      // Clear processed blocks to allow detection of newly replaced content
+      this.detector.clearProcessedBlocks();
+
+      // Process the content now that DOM should be stable
+      this.processCurrentContent();
+    }, 1000);
   }
 
   /**
@@ -229,6 +444,12 @@ class ThinkBlockMonitor {
       return;
     }
 
+    // Check for streaming text updates (character data changes)
+    const hasStreamingUpdates = mutations.some(mutation =>
+      mutation.type === 'characterData' ||
+      (mutation.type === 'childList' && mutation.addedNodes.length > 0)
+    );
+
     // For React Virtuoso, we need faster processing due to virtual scrolling
     const hasVirtuosoChanges = mutations.some(mutation =>
       mutation.target.closest && (
@@ -237,8 +458,15 @@ class ThinkBlockMonitor {
       )
     );
 
-    // Use shorter debounce for virtuoso changes, longer for others
-    const debounceTime = hasVirtuosoChanges ? 100 : 250;
+    // Use very short debounce for streaming updates, moderate for virtuoso, longer for others
+    let debounceTime;
+    if (hasStreamingUpdates && hasVirtuosoChanges) {
+      debounceTime = 50; // Very responsive for streaming text
+    } else if (hasVirtuosoChanges) {
+      debounceTime = 100; // Fast for virtuoso changes
+    } else {
+      debounceTime = 250; // Normal for other changes
+    }
 
     // Debounce processing to avoid excessive computation
     clearTimeout(this.processingTimeout);
@@ -298,6 +526,12 @@ class ThinkBlockMonitor {
    * Processes all current content on the page
    */
   processCurrentContent() {
+    // Don't process during streaming to avoid conflicts with DOM replacement
+    if (this.isStreaming) {
+      console.log('Skipping processing: streaming in progress');
+      return;
+    }
+
     try {
       const ranges = this.detector.scanDocument();
       if (ranges.length > 0) {
@@ -312,8 +546,12 @@ class ThinkBlockMonitor {
           this.detector.markAsProcessed(range);
         });
 
-        // Restore scroll position with height compensation
-        this.restoreScrollPositionWithHeightAdjustment(scrollAnchor, heightMeasurements, processingResults);
+        // Restore scroll position with height compensation (if enabled)
+        if (this.styler.settings.scrollPositionMemory) {
+          this.restoreScrollPositionWithHeightAdjustment(scrollAnchor, heightMeasurements, processingResults);
+        } else {
+          console.log('Scroll position memory disabled, skipping position restoration');
+        }
       }
     } catch (error) {
       console.error('Error processing content', error);
@@ -695,8 +933,15 @@ class ThinkBlockMonitor {
       this.intersectionObserver = null;
     }
 
+    // Clean up periodic check
+    if (this.periodicCheckInterval) {
+      clearInterval(this.periodicCheckInterval);
+      this.periodicCheckInterval = null;
+    }
+
     clearTimeout(this.processingTimeout);
     clearTimeout(this.scrollTimeout);
+    clearTimeout(this.streamingEndTimeout);
     console.log('Monitoring stopped');
   }
 }

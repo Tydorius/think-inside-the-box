@@ -14,11 +14,16 @@ JanitorAI previously had a feature that automatically wrapped AI thinking blocks
 - **Scroll Position Preservation**: Maintains your reading position when blocks are processed
 - **React Virtuoso Compatible**: Works seamlessly with JanitorAI's virtual scrolling
 - **Live Preview**: See styling changes instantly in the settings panel
+- **Streaming Detection**: Intelligently detects when AI responses are streaming to prevent conflicts
+- **Advanced Settings**: Configure debug mode, check intervals, and scroll behavior
+- **Smart Processing**: Only processes content when DOM is stable, avoiding duplication
 
 ## Installation
 
 ### From Mozilla Add-ons (Recommended)
-*Mozilla Add-ons link will be added once the extension is approved*
+1. Navigate to the add-on [page](https://addons.mozilla.org/en-US/developers/addon/think-inside-the-box)
+2. Click 'Add to Firefox'
+*Note: Mozilla Add-on is still pending approval as of 9/15/2025.*
 
 ### Manual Installation
 1. Download the latest release from the [Releases page](https://github.com/Tydorius/think-inside-the-box/releases)
@@ -50,6 +55,11 @@ JanitorAI previously had a feature that automatically wrapped AI thinking blocks
 - **Height Control**: Adjust maximum container height (default: 200px)
 - **Typography**: Customize font size and family
 - **Custom Colors**: Set background, border, text, and marker colors (Custom theme)
+
+#### Advanced Settings
+- **Debug Mode**: Enable detailed console logging for troubleshooting
+- **Check Interval**: Configure how often to scan for new thinking blocks (1-10 seconds)
+- **Scroll Position Memory**: Toggle scroll position preservation during processing
 
 ## Compatibility
 
@@ -102,3 +112,7 @@ If you encounter any issues or have questions:
 - Multiple theme support with customization options
 - Scroll position preservation
 - React Virtuoso compatibility
+- Streaming detection via UI state monitoring
+- Advanced settings for debug mode, intervals, and scroll behavior
+- Enhanced scroll position preservation with height compensation
+- Smart processing to avoid content duplication
