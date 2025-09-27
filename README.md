@@ -17,13 +17,15 @@ JanitorAI previously had a feature that automatically wrapped AI thinking blocks
 - **Streaming Detection**: Intelligently detects when AI responses are streaming to prevent conflicts
 - **Advanced Settings**: Configure debug mode, check intervals, and scroll behavior
 - **Smart Processing**: Only processes content when DOM is stable, avoiding duplication
+- **Window Focus Recovery**: Automatically re-detects thinking blocks when tab regains focus
+- **Manual Control Panel**: Floating interface for manual triggering and position control
+- **Intelligent Debug System**: Verbosity-controlled debug logging that respects settings
 
 ## Installation
 
 ### From Mozilla Add-ons (Recommended)
 1. Navigate to the add-on [page](https://addons.mozilla.org/en-US/developers/addon/think-inside-the-box)
 2. Click 'Add to Firefox'
-*Note: Mozilla Add-on is still pending approval as of 9/15/2025.*
 
 ### Manual Installation
 1. Download the latest release from the [Releases page](https://github.com/Tydorius/think-inside-the-box/releases)
@@ -45,8 +47,10 @@ JanitorAI previously had a feature that automatically wrapped AI thinking blocks
 
 1. Navigate to any JanitorAI chat page (`https://janitorai.com/chats/*`)
 2. The extension automatically detects and styles thinking blocks
-3. Click the extension icon in the toolbar to access settings
-4. Customize appearance, themes, and behavior as desired
+3. Use the **floating control panel** (bottom-right corner by default) for manual control:
+   - **Manual Check Button**: Manually scan for new thinking blocks
+4. Click the extension icon in the toolbar to access full settings
+5. Customize appearance, themes, and behavior as desired
 
 ### Settings
 
@@ -58,8 +62,10 @@ JanitorAI previously had a feature that automatically wrapped AI thinking blocks
 
 #### Advanced Settings
 - **Debug Mode**: Enable detailed console logging for troubleshooting
+- **Debug Verbosity**: Control detail level of debug output (0=critical, 1=info, 2=debug, 3=verbose)
 - **Check Interval**: Configure how often to scan for new thinking blocks (1-10 seconds)
 - **Scroll Position Memory**: Toggle scroll position preservation during processing
+- **Control Panel**: Show/hide floating control panel and set position (top-left, top-right, bottom-left, bottom-right)
 
 ## Compatibility
 
@@ -74,8 +80,6 @@ This extension is built with vanilla JavaScript and uses:
 - IntersectionObserver for viewport change detection
 - Chrome Extension APIs for settings persistence
 - Custom scroll position preservation algorithms
-
-For development documentation, see `DEV_README.md`.
 
 ## Contributing
 
@@ -104,15 +108,24 @@ If you encounter any issues or have questions:
 - Create a new issue with detailed information about the problem
 - Include your Firefox version and any relevant console errors
 
+## Troubleshooting
+
+### Extension Stops Working
+If the extension stops detecting thinking blocks:
+1. **Use Manual Check**: Click the search button in the floating control panel
+2. **Tab Focus**: Switch away from the tab and back - the extension automatically re-scans
+3. **Refresh Page**: As a last resort, refresh the JanitorAI chat page
+
+### No Control Panel Visible
+The floating control panel can be toggled in the extension settings. If it's hidden, click the extension icon and enable "Control Panel" in Advanced Settings.
+
+### Debug Console Logs
+To enable detailed logging for troubleshooting:
+1. Open extension settings
+2. Enable "Debug Mode" in Advanced Settings
+3. Adjust "Debug Verbosity" (2=debug recommended)
+4. Open Firefox Developer Tools (F12) and check the Console tab
+
 ## Changelog
 
-### v1.0.0
-- Initial release
-- Automatic thinking block detection and styling
-- Multiple theme support with customization options
-- Scroll position preservation
-- React Virtuoso compatibility
-- Streaming detection via UI state monitoring
-- Advanced settings for debug mode, intervals, and scroll behavior
-- Enhanced scroll position preservation with height compensation
-- Smart processing to avoid content duplication
+For detailed version history, see [CHANGELOG.md](CHANGELOG.md).

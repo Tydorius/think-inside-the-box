@@ -4,12 +4,13 @@
 (function() {
   'use strict';
 
-  console.log('Content script loading...');
+  dinfo('Content script loading...');
 
   // Ensure all dependencies are loaded
   if (typeof ThinkBlockDetector === 'undefined' ||
       typeof ThinkBlockStyler === 'undefined' ||
-      typeof ThinkBlockMonitor === 'undefined') {
+      typeof ThinkBlockMonitor === 'undefined' ||
+      typeof ThinkBlockControlPanel === 'undefined') {
     console.error('Required modules not loaded');
     return;
   }
@@ -19,17 +20,18 @@
   let detector = null;
   let styler = null;
   let monitor = null;
+  let controlPanel = null;
 
   /**
    * Initialize the extension
    */
   async function initialize() {
     if (isInitialized) {
-      console.log('Already initialized');
+      dinfo('Already initialized');
       return;
     }
 
-    console.log('Initializing extension...');
+    dinfo('Initializing extension...');
 
     try {
       // Create instances
@@ -38,6 +40,9 @@
 
       // Initialize styler with settings
       await styler.initialize();
+
+      // Set global debug mode and verbosity
+      window.setDebugMode(styler.settings.debugMode || false, styler.settings.debugVerbosity || 2);
 
       // Initialize detector with settings
       detector.initialize(styler.settings);
@@ -51,8 +56,12 @@
       // Start monitoring
       monitor.startMonitoring();
 
+      // Create and initialize control panel
+      controlPanel = new ThinkBlockControlPanel();
+      controlPanel.initialize(styler.settings, manualCheckForThinkBlocks);
+
       isInitialized = true;
-      console.log('Extension initialized successfully');
+      dinfo('Extension initialized successfully');
 
     } catch (error) {
       console.error('Initialization failed', error);
@@ -66,7 +75,10 @@
     if (monitor) {
       monitor.stopMonitoring();
     }
-    console.log('Cleanup completed');
+    if (controlPanel) {
+      controlPanel.destroy();
+    }
+    dinfo('Cleanup completed');
   }
 
   /**
@@ -79,16 +91,48 @@
   }
 
   /**
+   * Manually trigger a check for new thinking blocks
+   */
+  function manualCheckForThinkBlocks() {
+    if (!isInitialized || !detector || !monitor) {
+      dinfo('Extension not initialized, skipping manual check');
+      return;
+    }
+
+    dinfo('Manual check for think blocks triggered');
+
+    // Clear processed blocks to allow detection of potentially missed content
+    detector.clearProcessedBlocks();
+
+    // Process current content
+    monitor.processCurrentContent();
+  }
+
+  /**
+   * Handle window focus events to re-check for think blocks
+   */
+  function handleWindowFocus() {
+    if (!isValidPage()) {
+      return;
+    }
+
+    dinfo('Window focused, checking for new think blocks');
+
+    // Delay the check slightly to ensure any DOM updates are complete
+    setTimeout(manualCheckForThinkBlocks, 500);
+  }
+
+  /**
    * Handle page navigation changes (for SPAs)
    */
   function handleNavigationChange() {
     if (isValidPage()) {
-      console.log('Valid chat page detected');
+      dinfo('Valid chat page detected');
 
       // Delay initialization to ensure page content is loaded
       setTimeout(initialize, 1000);
     } else {
-      console.log('Not a chat page, extension disabled');
+      dinfo('Not a chat page, extension disabled');
       cleanup();
       isInitialized = false;
     }
@@ -104,13 +148,16 @@
   // Handle page unload
   window.addEventListener('beforeunload', cleanup);
 
+  // Handle window focus to re-check for think blocks
+  window.addEventListener('focus', handleWindowFocus);
+
   // Listen for navigation changes (for single-page applications)
   let lastUrl = location.href;
   new MutationObserver(() => {
     const url = location.href;
     if (url !== lastUrl) {
       lastUrl = url;
-      console.log('Navigation detected');
+      ddebug('Navigation detected');
       handleNavigationChange();
     }
   }).observe(document, { subtree: true, childList: true });
@@ -119,11 +166,19 @@
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === 'sync' && styler && detector && monitor) {
-        console.log('Settings changed, updating all components');
+        dinfo('Settings changed, updating all components');
         styler.initialize().then(() => {
+          // Update global debug mode and verbosity
+          window.setDebugMode(styler.settings.debugMode || false, styler.settings.debugVerbosity || 2);
+
           // Update detector and monitor with new settings
           detector.initialize(styler.settings);
           monitor.initialize(styler.settings);
+
+          // Update control panel with new settings
+          if (controlPanel) {
+            controlPanel.updateSettings(styler.settings);
+          }
 
           // Update existing containers
           styler.updateExistingContainers();
@@ -142,7 +197,7 @@
   if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === 'SETTINGS_UPDATED' && styler) {
-        console.log('Settings updated from popup');
+        dinfo('Settings updated from popup');
         styler.settings = { ...styler.settings, ...message.settings };
         styler.updateExistingContainers();
         sendResponse({ success: true });
@@ -150,6 +205,6 @@
     });
   }
 
-  console.log('Content script loaded');
+  dinfo('Content script loaded');
 
 })();

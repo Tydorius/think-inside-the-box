@@ -17,7 +17,7 @@ class ThinkBlockDetector {
   initialize(settings) {
     this.settings = settings;
     this.debugMode = settings.debugMode || false;
-    console.log('Detector initialized with debug mode:', this.debugMode);
+    dinfo(`Detector initialized with debug mode: ${this.debugMode}`);
   }
 
   /**
@@ -25,19 +25,17 @@ class ThinkBlockDetector {
    * @returns {Array} Array of detected thinking block ranges
    */
   scanDocument() {
-    console.log('Scanning for thinking blocks');
+    ddebug('Scanning for thinking blocks');
 
     // Target the virtuoso container specifically for React Virtuoso compatibility
     const virtuosoContainer = document.querySelector('[data-testid="virtuoso-item-list"]');
     if (!virtuosoContainer) {
-      console.warn('Virtuoso container not found, falling back to document search');
+      dcritical('Virtuoso container not found, falling back to document search');
 
       const allElements = document.querySelectorAll('div[style*="font-size: 1rem"]');
 
-      // Process detection FIRST, then debug highlight
       const ranges = this.processElements(allElements);
 
-      // Run debug logging AFTER detection (console only, no DOM modification)
       if (this.debugMode) {
         this.debugLogContent();
       }
@@ -45,14 +43,11 @@ class ThinkBlockDetector {
       return ranges;
     }
 
-    console.log('Found virtuoso container, scanning within it');
-    // Find all divs that might contain think markers within the virtuoso container
+    ddebug('Found virtuoso container, scanning within it');
     const allElements = virtuosoContainer.querySelectorAll('div[style*="font-size: 1rem"]');
 
-    // Process detection FIRST, then debug highlight
     const ranges = this.processElements(allElements);
 
-    // Run debug logging AFTER detection (console only, no DOM modification)
     if (this.debugMode) {
       this.debugLogContent();
     }
@@ -64,16 +59,16 @@ class ThinkBlockDetector {
    * Debug function: Logs content analysis without modifying DOM
    */
   debugLogContent() {
-    console.log('DEBUG MODE - Analyzing content (console only)');
+    dverbose('Analyzing content for debug purposes');
 
     // Find container to search in
     const searchContainer = document.querySelector('[data-testid="virtuoso-item-list"]') || document.body;
-    console.log('DEBUG - Search container:', searchContainer);
+    dverbose('Search container:', searchContainer);
 
     // Count occurrences of "think" in general text
     const bodyText = searchContainer.textContent.toLowerCase();
     const thinkCount = (bodyText.match(/think/g) || []).length;
-    console.log(`DEBUG - Found ${thinkCount} total instances of "think" in text`);
+    dverbose(`Found ${thinkCount} total instances of "think" in text`);
 
     // Look for HTML entity markers with detailed analysis
     const allElements = searchContainer.querySelectorAll('*');
@@ -96,7 +91,7 @@ class ThinkBlockDetector {
       '&#60;/think&#62;'
     ];
 
-    console.log('DEBUG - Testing for different marker encodings...');
+    dverbose('Testing for different marker encodings...');
 
     allElements.forEach(el => {
       const textContent = el.textContent;
@@ -106,7 +101,7 @@ class ThinkBlockDetector {
       possibleStartMarkers.forEach(marker => {
         if (textContent.includes(marker)) {
           startMarkers++;
-          console.log(`DEBUG - Found START marker "${marker}" in textContent:`, textContent.substring(0, 100));
+          dverbose(`Found START marker "${marker}" in textContent:`, textContent.substring(0, 100));
           markerDetails.push({
             type: 'start',
             encoding: marker,
@@ -118,7 +113,7 @@ class ThinkBlockDetector {
           });
         }
         if (innerHTML.includes(marker)) {
-          console.log(`DEBUG - Found START marker "${marker}" in innerHTML:`, innerHTML.substring(0, 100));
+          dverbose(`Found START marker "${marker}" in innerHTML:`, innerHTML.substring(0, 100));
           markerDetails.push({
             type: 'start',
             encoding: marker,
@@ -135,7 +130,7 @@ class ThinkBlockDetector {
       possibleEndMarkers.forEach(marker => {
         if (textContent.includes(marker)) {
           endMarkers++;
-          console.log(`DEBUG - Found END marker "${marker}" in textContent:`, textContent.substring(0, 100));
+          dverbose(`Found END marker "${marker}" in textContent:`, textContent.substring(0, 100));
           markerDetails.push({
             type: 'end',
             encoding: marker,
@@ -147,7 +142,7 @@ class ThinkBlockDetector {
           });
         }
         if (innerHTML.includes(marker)) {
-          console.log(`DEBUG - Found END marker "${marker}" in innerHTML:`, innerHTML.substring(0, 100));
+          dverbose(`Found END marker "${marker}" in innerHTML:`, innerHTML.substring(0, 100));
           markerDetails.push({
             type: 'end',
             encoding: marker,
@@ -161,22 +156,22 @@ class ThinkBlockDetector {
       });
     });
 
-    console.log(`DEBUG - Found ${startMarkers} start markers and ${endMarkers} end markers`);
-    console.log('DEBUG - Marker details:', markerDetails);
+    dverbose(`Found ${startMarkers} start markers and ${endMarkers} end markers`);
+    dverbose('Marker details:', markerDetails);
 
     // Check for the specific div structure we're looking for
     const targetDivs = searchContainer.querySelectorAll('div[style*="font-size: 1rem"]');
-    console.log(`DEBUG - Found ${targetDivs.length} divs with "font-size: 1rem" style`);
+    dverbose(`Found ${targetDivs.length} divs with "font-size: 1rem" style`);
 
     let targetDivsWithMarkers = 0;
     targetDivs.forEach((div, index) => {
       const textContent = div.textContent;
       const innerHTML = div.innerHTML;
 
-      console.log(`DEBUG - Target div ${index}:`);
-      console.log(`  textContent: "${textContent}"`);
-      console.log(`  innerHTML: "${innerHTML}"`);
-      console.log(`  style: "${div.getAttribute('style')}"`);
+      dverbose(`Target div ${index}:`);
+      dverbose(`  textContent: "${textContent}"`);
+      dverbose(`  innerHTML: "${innerHTML}"`);
+      dverbose(`  style: "${div.getAttribute('style')}"`);
 
       // Check all possible marker encodings in target divs
       let hasMarker = false;
@@ -184,16 +179,16 @@ class ThinkBlockDetector {
         if (textContent.includes(marker) || innerHTML.includes(marker)) {
           hasMarker = true;
           targetDivsWithMarkers++;
-          console.log(`  ✓ Contains marker: "${marker}"`);
+          dverbose(`  ✓ Contains marker: "${marker}"`);
         }
       });
 
       if (!hasMarker && textContent.toLowerCase().includes('think')) {
-        console.log(`  ⚠ Contains "think" but no markers`);
+        dverbose('  ⚠ Contains "think" but no markers');
       }
     });
 
-    console.log(`DEBUG - ${targetDivsWithMarkers} target divs contain think markers`);
+    dverbose(`${targetDivsWithMarkers} target divs contain think markers`);
   }
 
   /**
@@ -205,16 +200,16 @@ class ThinkBlockDetector {
     const ranges = [];
     let currentRange = null;
 
-    console.log(`Processing ${allElements.length} potential elements`);
+    ddebug(`Processing ${allElements.length} potential elements`);
 
     for (const element of allElements) {
       const text = element.textContent.trim();
 
-      console.log(`DEBUG - Processing element: "${text}"`);
+      dverbose(`Processing element: "${text}"`);
 
       // Check for start marker (exact match)
       if (!currentRange && text === this.startMarker.replace(/&lt;/g, '<').replace(/&gt;/g, '>')) {
-        console.log(`DEBUG - Found START marker element`);
+        dverbose('Found START marker element');
         currentRange = {
           startElement: element,
           elements: [element],
@@ -223,7 +218,7 @@ class ThinkBlockDetector {
       }
       // Check for start marker (HTML entity match)
       else if (!currentRange && element.innerHTML.trim() === this.startMarker) {
-        console.log(`DEBUG - Found START marker element (HTML entity)`);
+        dverbose('Found START marker element (HTML entity)');
         currentRange = {
           startElement: element,
           elements: [element],
@@ -232,7 +227,7 @@ class ThinkBlockDetector {
       }
       // Check for end marker (exact match)
       else if (currentRange && text === this.endMarker.replace(/&lt;/g, '<').replace(/&gt;/g, '>')) {
-        console.log(`DEBUG - Found END marker element`);
+        dverbose('Found END marker element');
         currentRange.elements.push(element);
         currentRange.endElement = element;
         ranges.push(currentRange);
@@ -240,7 +235,7 @@ class ThinkBlockDetector {
       }
       // Check for end marker (HTML entity match)
       else if (currentRange && element.innerHTML.trim() === this.endMarker) {
-        console.log(`DEBUG - Found END marker element (HTML entity)`);
+        dverbose('Found END marker element (HTML entity)');
         currentRange.elements.push(element);
         currentRange.endElement = element;
         ranges.push(currentRange);
@@ -248,12 +243,12 @@ class ThinkBlockDetector {
       }
       // Add elements in between start and end
       else if (currentRange) {
-        console.log(`DEBUG - Adding content element to range`);
+        dverbose('Adding content element to range');
         currentRange.elements.push(element);
       }
     }
 
-    console.log(`Found ${ranges.length} thinking blocks`);
+    dinfo(`Found ${ranges.length} thinking blocks`);
     return ranges.filter(range => !this.isProcessed(range));
   }
 
@@ -288,7 +283,7 @@ class ThinkBlockDetector {
 
     // Container doesn't exist anymore, remove from processed set and allow re-processing
     this.processedBlocks.delete(key);
-    console.log('Styled container missing, allowing re-processing of range');
+    ddebug('Styled container missing, allowing re-processing of range');
     return false;
   }
 
@@ -316,14 +311,14 @@ class ThinkBlockDetector {
   clearProcessedBlocks() {
     const count = this.processedBlocks.size;
     this.processedBlocks.clear();
-    console.log(`Cleared ${count} processed blocks for re-processing`);
+    ddebug(`Cleared ${count} processed blocks for re-processing`);
   }
 
   /**
    * Manual debug function for console testing
    */
   runDebugAnalysis() {
-    console.log('Manual debug analysis triggered');
+    dinfo('Manual debug analysis triggered');
     this.debugLogContent();
   }
 }
@@ -333,7 +328,7 @@ window.ThinkBlockDetector = ThinkBlockDetector;
 
 // Add global debug function for easy console testing
 window.debugThinkAnalysis = function() {
-  console.log('Global debug function called');
+  dinfo('Global debug function called');
   const detector = new ThinkBlockDetector();
   detector.runDebugAnalysis();
 };

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Think Inside the Box",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Re-creates defunct <think> wrapper on JanitorAI.",
 
   "browser_specific_settings": {
@@ -20,9 +20,11 @@
   "content_scripts": [{
     "matches": ["https://janitorai.com/chats/*"],
     "js": [
+      "content-scripts/debug-utils.js",
       "content-scripts/detector.js",
       "content-scripts/styler.js",
       "content-scripts/monitor.js",
+      "content-scripts/control-panel.js",
       "content-scripts/main.js"
     ],
     "css": ["styles/base-styles.css"],

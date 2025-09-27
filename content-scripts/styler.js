@@ -18,8 +18,12 @@ class ThinkBlockStyler {
       markerColor: '#8e67ff',
       // Debug and performance settings
       debugMode: false,
+      debugVerbosity: 2, // 0=critical, 1=info, 2=debug, 3=verbose
       periodicCheckInterval: 3000,
-      scrollPositionMemory: true
+      scrollPositionMemory: true,
+      // Control panel settings
+      controlPanelVisible: true,
+      controlPanelPosition: 'bottom-right'
     };
   }
 
@@ -31,9 +35,9 @@ class ThinkBlockStyler {
       if (chrome.storage && chrome.storage.sync) {
         const stored = await chrome.storage.sync.get();
         this.settings = { ...this.settings, ...stored };
-        console.log('Styler initialized with settings', this.settings);
+        dinfo('Styler initialized with settings', this.settings);
       } else {
-        console.log('Storage not available, using default settings');
+        dinfo('Storage not available, using default settings');
       }
     } catch (error) {
       console.warn('Failed to load settings, using defaults', error);
@@ -47,11 +51,11 @@ class ThinkBlockStyler {
    */
   wrapThinkingBlocks(ranges) {
     if (!this.settings.enabled) {
-      console.log('Styling disabled');
+      dinfo('Styling disabled');
       return { containers: [], totalNewHeight: 0 };
     }
 
-    console.log(`Styling ${ranges.length} thinking blocks`);
+    dinfo(`Styling ${ranges.length} thinking blocks`);
 
     const containers = [];
     let totalNewHeight = 0;
@@ -71,7 +75,7 @@ class ThinkBlockStyler {
               parseFloat(computedStyle.marginBottom);
 
             totalNewHeight += fullHeight;
-            console.log(`Container ${index} height: ${fullHeight}px`);
+            ddebug(`Container ${index} height: ${fullHeight}px`);
           }, 10);
         }
       } catch (error) {
@@ -92,33 +96,24 @@ class ThinkBlockStyler {
    * @param {number} index - Index for unique identification
    */
   wrapSingleRange(range, index) {
-    // Create the main container
     const container = document.createElement('div');
     container.className = this.containerClass;
     container.id = `think-box-${index}-${Date.now()}`;
 
-    // Apply dynamic styling based on current settings
     this.applyContainerStyles(container);
 
-    // Create content wrapper
     const contentWrapper = document.createElement('div');
     contentWrapper.className = this.contentClass;
-
-    // Add internal padding to prevent content from touching edges
     contentWrapper.style.padding = '8px 12px';
     contentWrapper.style.boxSizing = 'border-box';
 
-    // Insert container before the first element
     const startElement = range.startElement;
     startElement.parentNode.insertBefore(container, startElement);
 
-    // Process each element in the range
     this.processRangeElements(range, contentWrapper);
-
-    // Add content wrapper to container
     container.appendChild(contentWrapper);
 
-    console.log(`Created container for thinking block ${index}`);
+    ddebug(`Created container for thinking block ${index}`);
   }
 
   /**
@@ -323,7 +318,7 @@ class ThinkBlockStyler {
       });
     });
 
-    console.log(`Updated ${containers.length} existing containers with new settings`);
+    dinfo(`Updated ${containers.length} existing containers with new settings`);
   }
 }
 

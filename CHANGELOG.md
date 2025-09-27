@@ -2,10 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-01-16
+## [1.0.2] - 2025-09-23
+
+### Added
+- **Window Focus Recovery**: Automatic re-detection of think blocks when JanitorAI tab regains focus
+  - Addresses issue where extension stops working when tab loses focus
+  - 500ms delay ensures DOM is ready before re-scanning
+  - Triggers manual check function with processed block clearing
+- **Floating Control Panel**: Interactive control interface for manual think block detection
+  - Single manual check button with visual feedback during processing
+  - Position controlled via dropdown in extension settings (top-left, top-right, bottom-left, bottom-right)
+  - Theme-aware styling matches selected extension theme
+- **Enhanced User Control**: Manual recovery capability without page refresh requirement
+- **Settings Integration**: Control panel visibility and position managed through extension popup
+
+### Fixed
+- Extension stopping unexpectedly when browser tab loses focus
+- Manual recovery requiring full page refresh when extension fails
+- Lack of user agency when automatic detection fails
+- **Debug Mode Console Output**: Debug messages now respect the debug mode checkbox setting
+  - Console output was appearing even when debug mode was disabled
+  - Centralized debug utility with verbosity levels (0=critical, 1=info, 2=debug, 3=verbose)
+  - Replaced direct console.log calls with debug utility functions
+
+### Technical Implementation
+- New `ThinkBlockControlPanel` class with modular design
+- Window focus event listener with debounced recovery mechanism
+- Semi-transparent floating UI with backdrop blur effects
+- Theme-aware control panel styling system
+- Integration with existing settings and storage systems
+- Proper cleanup and lifecycle management for control panel
+- **Debug Utility System**: Centralized debug logging with verbosity control
+  - `debug-utils.js` module with debug utility functions
+  - Global debug mode and verbosity settings management
+  - Console helper functions for runtime debug control
+
+## [1.0.1] - 2025-09-16
 
 ### Added
 - Initial release of Think Inside the Box Firefox extension
@@ -46,9 +80,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MutationObserver with optimized debouncing for different content types
 - IntersectionObserver for viewport change detection
 - Send button state monitoring to detect streaming phases
-    - React is a bit wonky, but since JanitorAI swaps the button during streaming this let me rely on JAI for the heavy lifting.
+    - React virtual DOM behavior addressed through JanitorAI button state detection
 - Height measurement system for precise scroll position restoration
-    - It's still a bit more jumpy than I'd like, which is why this is now something which can be disabled.
+    - Optional scroll position memory due to virtual scrolling complexities
 - Settings persistence via Chrome storage sync API
 - Modular architecture with separate detector, styler, and monitor classes
 

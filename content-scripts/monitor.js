@@ -27,14 +27,14 @@ class ThinkBlockMonitor {
    */
   initialize(settings) {
     this.settings = settings;
-    console.log('Monitor initialized with settings');
+    dinfo('Monitor initialized with settings');
   }
 
   /**
    * Starts monitoring the page for changes
    */
   startMonitoring() {
-    console.log('Starting content monitoring');
+    dinfo('Starting content monitoring');
 
     // Find the main chat container (adjust selector as needed for JanitorAI)
     const chatContainer = this.findChatContainer();
@@ -70,14 +70,14 @@ class ThinkBlockMonitor {
     // First try to find the React Virtuoso container (most specific)
     const virtuosoContainer = document.querySelector('[data-testid="virtuoso-item-list"]');
     if (virtuosoContainer) {
-      console.log('Found React Virtuoso container');
+      ddebug('Found React Virtuoso container');
       return virtuosoContainer;
     }
 
     // Fallback to virtuoso scroller
     const virtuosoScroller = document.querySelector('[data-testid="virtuoso-scroller"]');
     if (virtuosoScroller) {
-      console.log('Found Virtuoso scroller container');
+      ddebug('Found Virtuoso scroller container');
       return virtuosoScroller;
     }
 
@@ -94,7 +94,7 @@ class ThinkBlockMonitor {
     for (const selector of selectors) {
       const element = document.querySelector(selector);
       if (element) {
-        console.log(`Found chat container with selector: ${selector}`);
+        ddebug(`Found chat container with selector: ${selector}`);
         return element;
       }
     }
@@ -113,7 +113,7 @@ class ThinkBlockMonitor {
       console.warn('Virtuoso scroller not found, using window scroll');
       this.scrollContainer = window;
     } else {
-      console.log('Found virtuoso scroller, setting up scroll monitoring');
+      ddebug('Found virtuoso scroller, setting up scroll monitoring');
     }
 
     // Set up scroll event listener
@@ -139,40 +139,32 @@ class ThinkBlockMonitor {
    * @param {Event} event - Scroll event
    */
   handleScroll(event) {
-    // Clear existing timeout
     clearTimeout(this.scrollTimeout);
-
-    // Debounce scroll processing to avoid excessive scanning
     this.scrollTimeout = setTimeout(() => {
       const currentPosition = this.getScrollPosition();
       const scrollDelta = Math.abs(currentPosition - this.lastScrollPosition);
 
-      // Only process if user scrolled a significant amount (200px threshold) and not streaming
       if (scrollDelta > 200 && !this.isStreaming) {
-        console.log(`Significant scroll detected (${scrollDelta}px), checking for new think blocks`);
+        ddebug(`Significant scroll detected (${scrollDelta}px), checking for new think blocks`);
 
-        // Check if there are actually unstyled think blocks before clearing processed blocks
         if (this.hasUnstyledThinkBlocks()) {
-          console.log('Found unstyled think blocks after scroll, re-processing');
-          // Only clear processed blocks if we have genuinely new content
+          ddebug('Found unstyled think blocks after scroll, re-processing');
           this.detector.clearProcessedBlocks();
 
-          // Temporarily disable scroll events during processing to prevent feedback loops
           this.isProcessing = true;
 
           this.processCurrentContent();
 
-          // Update last position AFTER processing to get the corrected position
           setTimeout(() => {
             this.lastScrollPosition = this.getScrollPosition();
             this.isProcessing = false;
           }, 100);
         } else {
-          console.log('No new think blocks found after scroll, skipping processing');
+          ddebug('No new think blocks found after scroll, skipping processing');
           this.lastScrollPosition = currentPosition;
         }
       }
-    }, 150); // 150ms debounce - faster than mutation observer for responsive scroll
+    }, 150);
   }
 
   /**
@@ -191,7 +183,7 @@ class ThinkBlockMonitor {
       this.checkForStreamingUpdates();
     }, interval);
 
-    console.log(`Periodic streaming check enabled (every ${interval}ms)`);
+    dinfo(`Periodic streaming check enabled (every ${interval}ms)`);
   }
 
   /**
@@ -221,12 +213,12 @@ class ThinkBlockMonitor {
         const unstyledThinkContent = this.hasUnstyledThinkBlocks();
 
         if (unstyledThinkContent) {
-          console.log('Periodic check detected new unstyled think blocks');
+          ddebug('Periodic check detected new unstyled think blocks');
           // Only clear processed blocks if we detect genuinely new content
           this.detector.clearProcessedBlocks();
           this.processCurrentContent();
         } else {
-          console.log('Periodic check: think markers found but all appear styled');
+          ddebug('Periodic check: think markers found but all appear styled');
         }
       }
 
@@ -268,7 +260,7 @@ class ThinkBlockMonitor {
       this.checkStreamingState();
     }, 200);
 
-    console.log('Streaming detection via send button monitoring enabled');
+    dinfo('Streaming detection via send button monitoring enabled');
   }
 
   /**
@@ -320,14 +312,12 @@ class ThinkBlockMonitor {
    * @param {string} newState - Current button state
    */
   handleButtonStateChange(oldState, newState) {
-    if (this.settings?.debugMode) {
-      console.log(`Button state changed: ${oldState} → ${newState}`);
-    }
+    ddebug(`Button state changed: ${oldState} → ${newState}`);
 
     // Detect streaming start: send button disappears, replaced by cancel/stop button
     if ((oldState === 'enabled' || oldState === 'disabled') && newState === 'streaming') {
       this.isStreaming = true;
-      console.log('Streaming detected: STARTED (cancel button appeared)');
+      dinfo('Streaming detected: STARTED (cancel button appeared)');
 
       // Clear any pending processing
       clearTimeout(this.streamingEndTimeout);
@@ -336,7 +326,7 @@ class ThinkBlockMonitor {
     // Detect streaming end: cancel/stop button disappears, send button reappears
     if (oldState === 'streaming' && (newState === 'enabled' || newState === 'disabled')) {
       this.isStreaming = false;
-      console.log('Streaming detected: ENDED (cancel button disappeared)');
+      dinfo('Streaming detected: ENDED (cancel button disappeared)');
 
       // Wait for DOM replacement to complete before processing
       this.schedulePostStreamingProcessing();
@@ -352,7 +342,7 @@ class ThinkBlockMonitor {
 
     // Wait 1 second after streaming ends to ensure DOM replacement is complete
     this.streamingEndTimeout = setTimeout(() => {
-      console.log('Processing think blocks after streaming completion');
+      dinfo('Processing think blocks after streaming completion');
 
       // Clear processed blocks to allow detection of newly replaced content
       this.detector.clearProcessedBlocks();
@@ -382,7 +372,7 @@ class ThinkBlockMonitor {
       });
 
       if (hasNewContent) {
-        console.log('New content detected via intersection observer, re-scanning');
+        ddebug('New content detected via intersection observer, re-scanning');
         // Use a small delay to let React finish rendering
         setTimeout(() => this.processCurrentContent(), 100);
       }
@@ -432,7 +422,7 @@ class ThinkBlockMonitor {
       characterDataOldValue: false
     });
 
-    console.log('MutationObserver started');
+    ddebug('MutationObserver started');
   }
 
   /**
@@ -499,7 +489,7 @@ class ThinkBlockMonitor {
     }
 
     if (hasRelevantChanges) {
-      console.log('Relevant changes detected, processing...');
+      ddebug('Relevant changes detected, processing...');
       this.processCurrentContent();
     }
 
@@ -528,7 +518,7 @@ class ThinkBlockMonitor {
   processCurrentContent() {
     // Don't process during streaming to avoid conflicts with DOM replacement
     if (this.isStreaming) {
-      console.log('Skipping processing: streaming in progress');
+      ddebug('Skipping processing: streaming in progress');
       return;
     }
 
@@ -550,7 +540,7 @@ class ThinkBlockMonitor {
         if (this.styler.settings.scrollPositionMemory) {
           this.restoreScrollPositionWithHeightAdjustment(scrollAnchor, heightMeasurements, processingResults);
         } else {
-          console.log('Scroll position memory disabled, skipping position restoration');
+          ddebug('Scroll position memory disabled, skipping position restoration');
         }
       }
     } catch (error) {
@@ -584,7 +574,7 @@ class ThinkBlockMonitor {
       totalOriginalHeight += rangeHeight;
     });
 
-    console.log(`Measured content heights - Total original: ${totalOriginalHeight}px`);
+    ddebug(`Measured content heights - Total original: ${totalOriginalHeight}px`);
 
     return {
       totalOriginalHeight,
@@ -647,7 +637,7 @@ class ThinkBlockMonitor {
       }
     }
 
-    console.log('Captured scroll anchor', {
+    ddebug('Captured scroll anchor', {
       scrollTop,
       anchorElement: anchorElement?.tagName,
       anchorOffset,
@@ -678,7 +668,7 @@ class ThinkBlockMonitor {
 
         // Check if anchor element still exists and is visible
         if (!document.contains(anchorElement)) {
-          console.log('Anchor element no longer exists, using fallback');
+          ddebug('Anchor element no longer exists, using fallback');
           this.fallbackScrollRestore(scrollAnchor);
           return;
         }
@@ -705,7 +695,7 @@ class ThinkBlockMonitor {
             this.scrollContainer.scrollTop = newScrollTop;
           }
 
-          console.log(`Restored scroll position (adjusted by ${scrollDifference.toFixed(1)}px)`);
+          ddebug(`Restored scroll position (adjusted by ${scrollDifference.toFixed(1)}px)`);
         }
       } catch (error) {
         console.warn('Error restoring scroll position:', error);
@@ -764,14 +754,14 @@ class ThinkBlockMonitor {
 
           totalNewHeight += fullHeight;
 
-          console.log(`Container ${index} actual height: ${fullHeight}px`);
+          dverbose(`Container ${index} actual height: ${fullHeight}px`);
         }
       });
 
       // Calculate the difference: negative means content got smaller (condensed)
       totalHeightDifference = totalNewHeight - heightMeasurements.totalOriginalHeight;
 
-      console.log(`Height difference calculation:
+      ddebug(`Height difference calculation:
         Original: ${heightMeasurements.totalOriginalHeight}px
         New: ${totalNewHeight}px
         Difference: ${totalHeightDifference}px`);
@@ -813,7 +803,7 @@ class ThinkBlockMonitor {
     if (Math.abs(adjustedScrollTop - currentScrollTop) > 5) {
       this.scrollToPosition(adjustedScrollTop);
 
-      console.log(`Anchor-based restore:
+      ddebug(`Anchor-based restore:
         Original scroll: ${scrollAnchor.scrollTop}px
         Height adjustment: ${heightAdjustment}px
         Final scroll: ${adjustedScrollTop}px`);
@@ -834,7 +824,7 @@ class ThinkBlockMonitor {
 
     // For virtual scrolling environments like React Virtuoso,
     // most content changes happen above the current viewport
-    // So we typically need to adjust by most of the height difference
+    // Adjustment needed based on most of the height difference
 
     // Use a factor based on how far down the page we are
     const scrollTop = scrollAnchor.scrollTop;
@@ -869,7 +859,7 @@ class ThinkBlockMonitor {
     if (Math.abs(targetScrollTop - currentScrollTop) > 5) {
       this.scrollToPosition(targetScrollTop);
 
-      console.log(`Height-based restore:
+      ddebug(`Height-based restore:
         Original scroll: ${scrollAnchor.scrollTop}px
         Height adjustment: ${adjustment}px
         Final scroll: ${targetScrollTop}px`);
@@ -910,7 +900,7 @@ class ThinkBlockMonitor {
       this.scrollContainer.scrollTop = scrollAnchor.scrollTop;
     }
 
-    console.log('Used fallback scroll restoration');
+    ddebug('Used fallback scroll restoration');
   }
 
   /**
@@ -942,7 +932,7 @@ class ThinkBlockMonitor {
     clearTimeout(this.processingTimeout);
     clearTimeout(this.scrollTimeout);
     clearTimeout(this.streamingEndTimeout);
-    console.log('Monitoring stopped');
+    dinfo('Monitoring stopped');
   }
 }
 

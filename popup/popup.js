@@ -17,7 +17,10 @@ class SettingsManager {
             // Debug and performance settings
             debugMode: false,
             periodicCheckInterval: 3000,
-            scrollPositionMemory: true
+            scrollPositionMemory: true,
+            // Control panel settings
+            controlPanelVisible: true,
+            controlPanelPosition: 'bottom-right'
         };
 
         this.currentSettings = { ...this.defaultSettings };
@@ -56,6 +59,10 @@ class SettingsManager {
         this.elements.periodicCheckInterval = document.getElementById('periodicCheckInterval');
         this.elements.periodicCheckIntervalValue = document.getElementById('periodicCheckIntervalValue');
         this.elements.scrollPositionMemory = document.getElementById('scrollPositionMemory');
+
+        // Control panel settings
+        this.elements.controlPanelVisible = document.getElementById('controlPanelVisible');
+        this.elements.controlPanelPosition = document.getElementById('controlPanelPosition');
 
         // Buttons and status
         this.elements.saveSettings = document.getElementById('saveSettings');
@@ -99,6 +106,10 @@ class SettingsManager {
         });
         this.elements.scrollPositionMemory.addEventListener('change', () => this.updatePreview());
 
+        // Control panel settings changes
+        this.elements.controlPanelVisible.addEventListener('change', () => this.updatePreview());
+        this.elements.controlPanelPosition.addEventListener('change', () => this.updatePreview());
+
         // Button clicks
         this.elements.saveSettings.addEventListener('click', () => this.saveSettings());
         this.elements.resetSettings.addEventListener('click', () => this.resetSettings());
@@ -138,6 +149,10 @@ class SettingsManager {
         this.elements.periodicCheckInterval.value = this.currentSettings.periodicCheckInterval;
         this.elements.periodicCheckIntervalValue.textContent = this.currentSettings.periodicCheckInterval + 'ms';
         this.elements.scrollPositionMemory.checked = this.currentSettings.scrollPositionMemory;
+
+        // Update control panel settings
+        this.elements.controlPanelVisible.checked = this.currentSettings.controlPanelVisible;
+        this.elements.controlPanelPosition.value = this.currentSettings.controlPanelPosition;
 
         // Show/hide custom theme section
         this.toggleCustomTheme();
@@ -241,7 +256,10 @@ class SettingsManager {
                 // Advanced settings
                 debugMode: this.elements.debugMode.checked,
                 periodicCheckInterval: parseInt(this.elements.periodicCheckInterval.value),
-                scrollPositionMemory: this.elements.scrollPositionMemory.checked
+                scrollPositionMemory: this.elements.scrollPositionMemory.checked,
+                // Control panel settings
+                controlPanelVisible: this.elements.controlPanelVisible.checked,
+                controlPanelPosition: this.elements.controlPanelPosition.value
             };
 
             if (chrome.storage && chrome.storage.sync) {
